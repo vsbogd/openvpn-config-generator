@@ -16,20 +16,58 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-CA_CN=MyVPN
-CLIENTS=1
-SERVER_HOST=127.0.0.1
+##
+## Tool to generate an OpenVPN server and client configurations.
+## 
+## Usage: openvpn-generate-config.sh -c ca -n count -s server
+##
+##   -c ca - Central authority common name
+##   -n count - number of clients to generate
+##   -s server - domain name or ip address of the server
+##   -h - show help
+## 
+
+show_help() {
+    grep -e '^##' $0 | sed 's/^## //'
+}
+
+while getopts 'c:n:s:' opt; do
+    case "$opt" in
+        c) CA_CN="$OPTARG"
+            ;;
+        n) CLIENTS="$OPTARG"
+            ;;
+        s) SERVER_HOST="$OPTARG"
+            ;;
+        *) show_help
+            exit 1
+            ;;
+    esac
+done
+
+if test -z "${CA_CN}" -o -z "${CLIENTS}" -o -z "${SERVER_HOST}" ; then
+    show_help
+    exit 1
+fi
+
+if ! command -v wget >/dev/null; then
+    echo "Please install wget tool"
+    exit 1
+fi
+if ! command -v sed >/dev/null; then
+    echo "Please install sed tool"
+    exit 1
+fi
 
 CONFIG_DIR=`pwd`
 EASYRSA_VER=3.2.1
 
 EASYRSA_DIR_NAME=EasyRSA-${EASYRSA_VER}
 
-rm -rf ${EASYRSA_DIR_NAME}
-rm -rf ${CA_CN}-*
-
-wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
-tar xzf ./${EASYRSA_DIR_NAME}.tgz
+if ! test -d ${EASYRSA_DIR_NAME} ; then
+    wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
+    tar xzf ./${EASYRSA_DIR_NAME}.tgz
+fi
 
 cd ${EASYRSA_DIR_NAME}
 

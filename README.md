@@ -8,11 +8,10 @@ Requirements:
 
 # Usage
 
-Open `openvpn-generate-configs.sh` script for edit and set three variables at
-the top of the file:
-- `CA_CN` - CA common name
-- `CLIENTS` - number of clients
-- `SERVER_HOST` - IP or domain name of the server
+Run `openvpn-generate-configs.sh` with at least following parameters:
+- `-c <name>` - set CA common name
+- `-n <count>` - number of clients to generate
+- `-s <server>` - IP or domain name of the server
 
-Save script, run `./openvpn-generate-configs.sh`. Script generates server and
-client config files. Files have name like `${CA_CN}-(server|client)-[0-9]+.conf`.
+Script generates server and client config files. Resulting files  have name
+like `${CA_CN}-(server|client)-[0-9]+.conf`.
