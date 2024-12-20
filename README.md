@@ -21,5 +21,7 @@ Optionally use options:
 
 Script generates server and client config files. Resulting files  have name
 like `${CA_CN}-(server|client)-[0-9]+.conf`. Configs contains all the
-certificate and keys needed. Tune configs if necessary then copy configs on
-target machines and run OpenVPN.
+certificate and keys needed. Server and client keys are not protected with
+password.  Use `openvpn-change-key-pass.sh <config>` to set or change the
+password. Tune configs if necessary then copy files on target machines and run
+OpenVPN.

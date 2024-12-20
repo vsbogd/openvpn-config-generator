@@ -16,16 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-##
-## Tool to generate an OpenVPN server and client configurations.
+## 
+## Generate an OpenVPN server and client configurations.
 ## 
 ## Usage: openvpn-generate-config.sh -c ca -n count -s server [-d days]
-##
+## 
 ##   -c ca      Central authority common name
 ##   -n count   Number of clients to generate
 ##   -s server  Domain name or ip address of the server
 ##   -d days    CA/client certificate validity period, 10 years by default
-##   -h - show help
 ## 
 
 show_help() {

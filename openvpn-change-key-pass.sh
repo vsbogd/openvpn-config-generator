@@ -16,9 +16,27 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+## 
+## Change password of the private key from OpenVPN config file.
+## 
+## Usage: openvpn-change-key-pass.sh config
+## 
+##   config     OpenVPN configuration file which contains a private key
+## 
+
+show_help() {
+    grep -e '^##' $0 | sed 's/^## //'
+}
+
 umask 077
 
 config=$1
+
+if test -z "${config}" ; then
+    show_help
+    exit 1
+fi
+
 tmpdir=`mktemp -d`
 tmpkey="$tmpdir/key"
 tmpconf="$tmpdir/config"
