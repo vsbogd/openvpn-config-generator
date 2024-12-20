@@ -15,7 +15,7 @@ rm -rf ${CA_CN}-*
 wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
 tar xzf ./${EASYRSA_DIR_NAME}.tgz
 
-pushd ${EASYRSA_DIR_NAME}
+cd ${EASYRSA_DIR_NAME}
 
 PKI=`pwd`/pki
 EASYRSA="./easyrsa --batch"
@@ -55,7 +55,7 @@ for i in $(seq 0 $CLIENTS); do
     CLIENT_CRT[$i]=${PKI}/issued/${NAME}.crt
 done
 
-popd
+cd ..
 
 TMPDIR=`mktemp -d`
 TMPCONF="${TMPDIR}/config"
