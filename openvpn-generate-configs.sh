@@ -19,11 +19,12 @@
 ##
 ## Tool to generate an OpenVPN server and client configurations.
 ## 
-## Usage: openvpn-generate-config.sh -c ca -n count -s server
+## Usage: openvpn-generate-config.sh -c ca -n count -s server [-d days]
 ##
-##   -c ca - Central authority common name
-##   -n count - number of clients to generate
-##   -s server - domain name or ip address of the server
+##   -c ca      Central authority common name
+##   -n count   Number of clients to generate
+##   -s server  Domain name or ip address of the server
+##   -d days    CA/client certificate validity period, 10 years by default
 ##   -h - show help
 ## 
 
@@ -31,13 +32,17 @@ show_help() {
     grep -e '^##' $0 | sed 's/^## //'
 }
 
-while getopts 'c:n:s:' opt; do
+DAYS=3653
+
+while getopts 'c:n:s:d:' opt; do
     case "$opt" in
         c) CA_CN="$OPTARG"
             ;;
         n) CLIENTS="$OPTARG"
             ;;
         s) SERVER_HOST="$OPTARG"
+            ;;
+        d) DAYS="$OPTARG"
             ;;
         *) show_help
             exit 1
@@ -75,7 +80,7 @@ PKI=`pwd`/pki
 EASYRSA="./easyrsa --batch"
 
 ${EASYRSA} init-pki
-${EASYRSA} --req-cn=${CA_CN} build-ca
+${EASYRSA} --days=${DAYS} --req-cn=${CA_CN} build-ca
 ${EASYRSA} gen-dh
 
 CA_CRT=${PKI}/ca.crt
@@ -104,7 +109,7 @@ for i in $(seq 0 $CLIENTS); do
     CLIENT_KEY[$i]=${PKI}/private/${NAME}.key
 
     ${EASYRSA} import-req ${CLIENT_REQ} ${NAME}
-    ${EASYRSA} sign-req ${ROLE} ${NAME}
+    ${EASYRSA} --days=${DAYS} sign-req ${ROLE} ${NAME}
     CLIENT_INLINE[$i]=${PKI}/inline/private/${NAME}.inline
     CLIENT_CRT[$i]=${PKI}/issued/${NAME}.crt
 done
