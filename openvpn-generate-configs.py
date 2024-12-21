@@ -54,7 +54,7 @@ class FileRepo(BusClient):
         return "FileRepo"
 
     def on_event(self, event: Event):
-        print(f"FileRepo < {event}")
+        log.debug(f"FileRepo < {event}")
         if event.type == EventType.COMMAND:
             name = event.args["name"]
             del event.args["name"]
@@ -80,7 +80,7 @@ class FileRepo(BusClient):
             self.bus.send(Event(self, EventType.DATA, id=id, val=val))
 
     def generate(self):
-        print(f"generate from data {self.data}")
+        log.debug(f"generate from data {self.data}")
         pass
 
 
@@ -178,7 +178,7 @@ class CATkGui(BusClient):
         return "CATkGui"
 
     def on_event(self, event: Event):
-        print(f"CATkGui < {event}")
+        log.debug(f"CATkGui < {event}")
         if event.type == EventType.DATA:
             self._on_data(**event.args)
 
@@ -198,7 +198,12 @@ class CATkGui(BusClient):
 
 ################ Main
 
+import logging
+
+log = logging.getLogger(__name__)
+
 def main():
+    logging.basicConfig(level=logging.DEBUG)
     bus = Bus()
     repo = FileRepo(bus)
     ui = CATkGui(Lang(), bus)
