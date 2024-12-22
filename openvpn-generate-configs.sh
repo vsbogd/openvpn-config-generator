@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # OpenVPN configuration generator.
 # Copyright (C) 2024 Vitaly Bogdanov

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # OpenVPN key password changer.
 # Copyright (C) 2024 Vitaly Bogdanov
