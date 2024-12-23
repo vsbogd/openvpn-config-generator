@@ -107,7 +107,6 @@ for i in $(seq 0 $CLIENTS); do
     CLIENT_REQ=${PKI}/reqs/${NAME}.req
     CLIENT_KEY[$i]=${PKI}/private/${NAME}.key
 
-    ${EASYRSA} import-req ${CLIENT_REQ} ${NAME}
     ${EASYRSA} --days=${DAYS} sign-req ${ROLE} ${NAME}
     CLIENT_INLINE[$i]=${PKI}/inline/private/${NAME}.inline
     CLIENT_CRT[$i]=${PKI}/issued/${NAME}.crt
