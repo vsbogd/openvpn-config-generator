@@ -21,7 +21,7 @@ Optionally use options:
 - `-r` -  Route internet traffic via VPN server
 
 Script generates server and client config files. The only password you need to
-enter during the process is a CA key password. Resulting files have names
+enter during the process is a new CA key password. Resulting files have names
 `${CA_CN}-client-[0-9]+.conf` and `${CA_CN}.conf`. Configs contain all the
 certificates and keys needed. Server and client keys are not protected with
 password. Use `openvpn-change-key-pass.sh <config>` to set or change the

@@ -68,6 +68,9 @@ if ! command -v sed >/dev/null; then
     exit 1
 fi
 
+echo -n "Please enter CA private key password (at least 4 characters): "
+read CA_PASS
+
 CONFIG_DIR=`pwd`
 EASYRSA_VER=3.2.1
 
@@ -87,7 +90,7 @@ PKI=`pwd`/pki
 EASYRSA="./easyrsa --batch"
 
 ${EASYRSA} init-pki
-${EASYRSA} --days=${DAYS} --req-cn=${CA_CN} build-ca
+echo -e "${CA_PASS}\n${CA_PASS}" | ${EASYRSA} --days=${DAYS} --req-cn=${CA_CN} build-ca
 ${EASYRSA} gen-dh
 
 CA_CRT=${PKI}/ca.crt
@@ -115,7 +118,7 @@ for i in $(seq 0 $CLIENTS); do
     CLIENT_REQ=${PKI}/reqs/${NAME}.req
     CLIENT_KEY[$i]=${PKI}/private/${NAME}.key
 
-    ${EASYRSA} --days=${DAYS} sign-req ${ROLE} ${NAME}
+    ${EASYRSA} --passin=pass:${CA_PASS} --days=${DAYS} sign-req ${ROLE} ${NAME}
     CLIENT_INLINE[$i]=${PKI}/inline/private/${NAME}.inline
     CLIENT_CRT[$i]=${PKI}/issued/${NAME}.crt
 done
