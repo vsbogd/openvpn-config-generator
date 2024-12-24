@@ -20,9 +20,10 @@ Optionally use options:
 - `-d days` - CA/client certificate validity period, 10 years by default
 - `-r` -  Route internet traffic via VPN server
 
-Script generates server and client config files. Resulting files  have name
-like `${CA_CN}-(server|client)-[0-9]+.conf`. Configs contains all the
-certificate and keys needed. Server and client keys are not protected with
-password.  Use `openvpn-change-key-pass.sh <config>` to set or change the
-password. Tune configs if necessary then copy files on target machines and run
-OpenVPN.
+Script generates server and client config files. The only password you need to
+enter during the process is a CA key password. Resulting files have names
+`${CA_CN}-client-[0-9]+.conf` and `${CA_CN}.conf`. Configs contain all the
+certificates and keys needed. Server and client keys are not protected with
+password. Use `openvpn-change-key-pass.sh <config>` to set or change the
+password. Usually it is required for a client only because server should be
+started automatically. Script prints short setup instructions after generation.
