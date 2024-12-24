@@ -135,82 +135,81 @@ cd ..
 
 # Generate configs #########################
 
+inline() {
+    echo "<$1>"
+    cat "$2"
+    echo "</$1>"
+}
+
+after() {
+    sed "1,/$1/d"
+}
+
+before() {
+    sed -n "/$1/q;p"
+}
+
 for i in $(seq 0 $CLIENTS); do
     if test 0 -eq $i; then
         NAME=${CA_CN}
-        SOURCE=${CONFIG_DIR}/server.conf
+        SOURCE="${CONFIG_DIR}/server.conf"
+        IS_SERVER=1
     else
         NAME=${ENTITY_NAME[$i]}
-        SOURCE=${CONFIG_DIR}/client.conf
+        SOURCE="${CONFIG_DIR}/client.conf"
+        IS_SERVER=0
     fi
 
     CONFIG="${NAME}.conf"
 
-    cat ${SOURCE} | sed -n '/^ca /q;p' >${CONFIG}
-
-    echo "<ca>" >>${CONFIG}
-    cat ${CA_CRT} >>${CONFIG}
-    echo "</ca>" >>${CONFIG}
-
-    echo "<cert>" >>${CONFIG}
-    cat ${CLIENT_CRT[$i]} >>${CONFIG}
-    echo "</cert>" >>${CONFIG}
-
-    echo "<key>" >>${CONFIG}
-    cat ${CLIENT_KEY[$i]} >>${CONFIG}
-    echo "</key>" >>${CONFIG}
-
-    if test 0 -eq $i; then
-        cat ${SOURCE} | sed '1,/^key /d' | sed -n '/^dh /q;p' >>${CONFIG}
-
-        echo "<dh>" >>${CONFIG}
-        cat ${DH} >>${CONFIG}
-        echo "</dh>" >>${CONFIG}
-
-        cat ${SOURCE} | sed '1,/^dh /d' | sed -n '/^;tls-auth /q;p' >>${CONFIG}
-
-        echo "<tls-auth>" >>${CONFIG}
-        cat ${TLS_AUTH} >>${CONFIG}
-        echo "</tls-auth>" >>${CONFIG}
-        echo "key-direction 0" >>${CONFIG}
-
-        cat ${SOURCE} | sed '1,/^;tls-auth /d' >>${CONFIG}
-
-        if test 1 -eq ${ROUTING} ; then
-            cp up ./${NAME}.up
-            cat <<EOF >>${CONFIG}
-
-
-# Allow running scripts
-script-security 2
-# Setup traffic routing and NAT
-up /etc/openvpn/server/${NAME}.up
-EOF
+    {
+        if test 1 -eq ${IS_SERVER} ; then
+            cat "${SOURCE}" | before "^ca "
+        else
+            cat "${SOURCE}" | before "^remote "
+            echo "remote ${SERVER_HOST} 1194"
+            cat "${SOURCE}" | after "^remote " | before "^ca "
         fi
-    else
-        cat ${SOURCE} | sed '1,/^key /d' | sed -n '/^;tls-auth /q;p' >>${CONFIG}
 
-        echo "<tls-auth>" >>${CONFIG}
-        cat ${TLS_AUTH} >>${CONFIG}
-        echo "</tls-auth>" >>${CONFIG}
-        echo "key-direction 1" >>${CONFIG}
+        inline ca "${CA_CRT}"
+        inline cert "${CLIENT_CRT[$i]}"
+        inline key "${CLIENT_KEY[$i]}"
 
-        cat ${SOURCE} | sed '1,/^;tls-auth /d' >>${CONFIG}
+        if test 1 -eq ${IS_SERVER} ; then
 
-        sed -i "s/my-server-1/${SERVER_HOST}/g" ${CONFIG}
+            cat "${SOURCE}" | after "^key " | before "^dh "
+            inline dh "${DH}"
 
-        if test 1 -eq ${ROUTING} ; then
-            cat <<EOF >>${CONFIG}
+            cat "${SOURCE}" | after "^dh " | before "^;tls-auth "
+            inline tls-auth "${TLS_AUTH}"
+            echo "key-direction 0"
+            cat "${SOURCE}" | after "^;tls-auth "
 
+            if test 1 -eq ${ROUTING} ; then
+                cp up ./${NAME}.up
+                echo -e "\n"
+                echo "# Allow running scripts"
+                echo "script-security 2"
+                echo "# Setup traffic routing and NAT"
+                echo "up /etc/openvpn/server/${NAME}.up"
+            fi
+        else
+            cat "${SOURCE}" | after "^key " | before ";tls-auth "
+            inline tls-auth "${TLS_AUTH}"
+            echo "key-direction 1"
+            cat "${SOURCE}" | after ";tls-auth "
 
-# Replace default route by VPN server
-redirect-gateway def1 bypass-dhcp
-# Set DNS to the Cloudflare DNS
-# (see # https://developers.cloudflare.com/1.1.1.1/ip-addresses/)
-dhcp-option dns 1.1.1.1
-EOF
+            if test 1 -eq ${ROUTING} ; then
+                echo -ne "\n"
+                echo "# Replace default route by VPN server, keep DHCP using old route"
+                echo "redirect-gateway def1 bypass-dhcp"
+                echo "# Use Cloudflare DNS instead of local network DNS"
+                echo "# (see # https://developers.cloudflare.com/1.1.1.1/ip-addresses/)"
+                echo "dhcp-option dns 1.1.1.1"
+            fi
         fi
-    fi
+    } >"${CONFIG}"
+
 done
 
 # Print setup instructions ##########################
