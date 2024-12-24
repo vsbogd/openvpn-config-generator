@@ -125,44 +125,43 @@ done
 
 cd ..
 
-TMPDIR=`mktemp -d`
-TMPCONF="${TMPDIR}/config"
-
 for i in $(seq 0 $CLIENTS); do
     if test 0 -eq $i; then
         NAME=${CA_CN}
-        CONF=${CONFIG_DIR}/server.conf
+        SOURCE=${CONFIG_DIR}/server.conf
     else
         NAME=${ENTITY_NAME[$i]}
-        CONF=${CONFIG_DIR}/client.conf
+        SOURCE=${CONFIG_DIR}/client.conf
     fi
 
-    cat ${CONF} | sed -n '/^ca /q;p' >${TMPCONF}
+    CONFIG="${NAME}.conf"
 
-    echo "<ca>" >>${TMPCONF}
-    cat ${CA_CRT} >>${TMPCONF}
-    echo "</ca>" >>${TMPCONF}
+    cat ${SOURCE} | sed -n '/^ca /q;p' >${CONFIG}
 
-    echo "<cert>" >>${TMPCONF}
-    cat ${CLIENT_CRT[$i]} >>${TMPCONF}
-    echo "</cert>" >>${TMPCONF}
+    echo "<ca>" >>${CONFIG}
+    cat ${CA_CRT} >>${CONFIG}
+    echo "</ca>" >>${CONFIG}
 
-    echo "<key>" >>${TMPCONF}
-    cat ${CLIENT_KEY[$i]} >>${TMPCONF}
-    echo "</key>" >>${TMPCONF}
+    echo "<cert>" >>${CONFIG}
+    cat ${CLIENT_CRT[$i]} >>${CONFIG}
+    echo "</cert>" >>${CONFIG}
+
+    echo "<key>" >>${CONFIG}
+    cat ${CLIENT_KEY[$i]} >>${CONFIG}
+    echo "</key>" >>${CONFIG}
 
     if test 0 -eq $i; then
-        cat ${CONF} | sed '1,/^key /d' | sed -n '/^dh /q;p' >>${TMPCONF}
+        cat ${SOURCE} | sed '1,/^key /d' | sed -n '/^dh /q;p' >>${CONFIG}
 
-        echo "<dh>" >>${TMPCONF}
-        cat ${DH} >>${TMPCONF}
-        echo "</dh>" >>${TMPCONF}
+        echo "<dh>" >>${CONFIG}
+        cat ${DH} >>${CONFIG}
+        echo "</dh>" >>${CONFIG}
 
-        cat ${CONF} | sed '1,/^dh /d' >>${TMPCONF}
+        cat ${SOURCE} | sed '1,/^dh /d' >>${CONFIG}
 
         if test 1 -eq ${ROUTING} ; then
             cp up ./${NAME}.up
-            cat <<EOF >>${TMPCONF}
+            cat <<EOF >>${CONFIG}
 
 
 # Allow running scripts
@@ -172,11 +171,11 @@ up /etc/openvpn/server/${NAME}.up
 EOF
         fi
     else
-        cat ${CONF} | sed '1,/^key /d' >>${TMPCONF}
-        sed -i "s/my-server-1/${SERVER_HOST}/g" ${TMPCONF}
+        cat ${SOURCE} | sed '1,/^key /d' >>${CONFIG}
+        sed -i "s/my-server-1/${SERVER_HOST}/g" ${CONFIG}
 
         if test 1 -eq ${ROUTING} ; then
-            cat <<EOF >>${TMPCONF}
+            cat <<EOF >>${CONFIG}
 
 
 # Replace default route by VPN server
@@ -187,9 +186,6 @@ dhcp-option dns 1.1.1.1
 EOF
         fi
     fi
-
-    cp ${TMPCONF} ./${NAME}.conf
-    shred -u ${TMPCONF}
 done
 
 SERVERDIR=/etc/openvpn/server
