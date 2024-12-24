@@ -16,21 +16,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-## 
-## Generate an OpenVPN server and client configurations.
-## 
-## Usage: openvpn-generate-config.sh -c <cn> -n <count> -s <server>
-##          [-d <days>] [-r]
-## 
-##   -c <ca>        Central authority common name, no spaces
-##   -n <count>     Number of clients to generate
-##   -s <server>    Domain name or ip address of the server
-##   -d <days>      CA/client certificate validity period, 10 years by default
-##   -r             Route internet traffic via VPN server
-## 
+#H 
+#H Generate an OpenVPN server and client configurations.
+#H 
+#H Usage: openvpn-generate-config.sh -c <cn> -n <count> -s <server>
+#H          [-d <days>] [-r]
+#H 
+#H   -c <ca>        Central authority common name, no spaces
+#H   -n <count>     Number of clients to generate
+#H   -s <server>    Domain name or ip address of the server
+#H   -d <days>      CA/client certificate validity period, 10 years by default
+#H   -r             Route internet traffic via VPN server
+#H 
 
 show_help() {
-    grep -e '^## ' $0 | sed 's/^## //'
+    grep -e '^#H ' $0 | sed 's/^#H //'
 }
 
 DAYS=3653
@@ -53,6 +53,8 @@ while getopts 'c:n:s:d:r' opt; do
             ;;
     esac
 done
+
+# Setup local environment #########################################
 
 if test -z "${CA_CN}" -o -z "${CLIENTS}" -o -z "${SERVER_HOST}" ; then
     show_help
@@ -83,6 +85,8 @@ if ! test -d ${EASYRSA_DIR_NAME} ; then
     rm -rf ${EASYRSA_DIR_NAME}
     tar xzf ./${EASYRSA_DIR_NAME}.tgz
 fi
+
+# Generate keys and certificates ########################
 
 cd ${EASYRSA_DIR_NAME}
 
@@ -124,6 +128,8 @@ for i in $(seq 0 $CLIENTS); do
 done
 
 cd ..
+
+# Generate configs #########################
 
 for i in $(seq 0 $CLIENTS); do
     if test 0 -eq $i; then
@@ -187,6 +193,8 @@ EOF
         fi
     fi
 done
+
+# Print setup instructions ##########################
 
 SERVERDIR=/etc/openvpn/server
 SERVERCONF=${CA_CN}.conf
