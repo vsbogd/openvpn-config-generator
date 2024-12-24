@@ -12,12 +12,13 @@ The following tools are required by the script:
 # Usage
 
 Run `openvpn-generate-configs.sh` with at least following parameters:
-- `-c ca` - Central authority common name
+- `-c ca` - Central authority common name, no spaces
 - `-n count` - Number of clients to generate
 - `-s server` - Domain name or ip address of the server
 
 Optionally use options:
 - `-d days` - CA/client certificate validity period, 10 years by default
+- `-r` -  Route internet traffic via VPN server
 
 Script generates server and client config files. Resulting files  have name
 like `${CA_CN}-(server|client)-[0-9]+.conf`. Configs contains all the

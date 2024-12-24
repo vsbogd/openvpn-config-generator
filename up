@@ -1,0 +1,11 @@
+#!/bin/bash
+
+VPNIF=${dev}
+WANIF=`ip route | grep default | egrep -o 'dev [^ ]+' | cut -f 2 -d\  `
+
+iptables -P FORWARD DROP
+iptables -A FORWARD -i ${VPNIF} -j ACCEPT
+iptables -A FORWARD -o ${VPNIF} -m state --state ESTABLISHED -j ACCEPT
+iptables -t nat -A POSTROUTING -o ${WANIF} -j MASQUERADE
+
+echo 1 > /proc/sys/net/ipv4/ip_forward

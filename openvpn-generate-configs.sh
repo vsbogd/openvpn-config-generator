@@ -21,10 +21,11 @@
 ## 
 ## Usage: openvpn-generate-config.sh -c ca -n count -s server [-d days]
 ## 
-##   -c ca      Central authority common name
+##   -c ca      Central authority common name, no spaces
 ##   -n count   Number of clients to generate
 ##   -s server  Domain name or ip address of the server
 ##   -d days    CA/client certificate validity period, 10 years by default
+##   -r         Route internet traffic via VPN server
 ## 
 
 show_help() {
@@ -32,8 +33,9 @@ show_help() {
 }
 
 DAYS=3653
+ROUTING=0
 
-while getopts 'c:n:s:d:' opt; do
+while getopts 'c:n:s:d:r' opt; do
     case "$opt" in
         c) CA_CN="$OPTARG"
             ;;
@@ -42,6 +44,8 @@ while getopts 'c:n:s:d:' opt; do
         s) SERVER_HOST="$OPTARG"
             ;;
         d) DAYS="$OPTARG"
+            ;;
+        r) ROUTING=1
             ;;
         *) show_help
             exit 1
@@ -69,7 +73,10 @@ EASYRSA_VER=3.2.1
 EASYRSA_DIR_NAME=EasyRSA-${EASYRSA_VER}
 
 if ! test -d ${EASYRSA_DIR_NAME} ; then
-    wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
+    if ! test -f ${EASYRSA_DIR_NAME}.tgz ; then
+        wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
+    fi
+    rm -rf ${EASYRSA_DIR_NAME}
     tar xzf ./${EASYRSA_DIR_NAME}.tgz
 fi
 
@@ -119,8 +126,10 @@ TMPCONF="${TMPDIR}/config"
 
 for i in $(seq 0 $CLIENTS); do
     if test 0 -eq $i; then
+        NAME=${CA_CN}
         CONF=${CONFIG_DIR}/server.conf
     else
+        NAME=${ENTITY_NAME[$i]}
         CONF=${CONFIG_DIR}/client.conf
     fi
 
@@ -146,11 +155,71 @@ for i in $(seq 0 $CLIENTS); do
         echo "</dh>" >>${TMPCONF}
 
         cat ${CONF} | sed '1,/^dh /d' >>${TMPCONF}
+
+        if test 1 -eq ${ROUTING} ; then
+            cp up ./${NAME}.up
+            cat <<EOF >>${TMPCONF}
+
+
+# Allow running scripts
+script-security 2
+# Setup traffic routing and NAT
+up /etc/openvpn/server/${NAME}.up
+EOF
+        fi
     else
         cat ${CONF} | sed '1,/^key /d' >>${TMPCONF}
         sed -i "s/my-server-1/${SERVER_HOST}/g" ${TMPCONF}
+
+        if test 1 -eq ${ROUTING} ; then
+            cat <<EOF >>${TMPCONF}
+
+
+# Replace default route by VPN server
+redirect-gateway def1 bypass-dhcp
+# Set DNS to the Cloudflare DNS
+# (see # https://developers.cloudflare.com/1.1.1.1/ip-addresses/)
+dhcp-option dns 1.1.1.1
+EOF
+        fi
     fi
 
-    cp ${TMPCONF} ./${ENTITY_NAME[$i]}.conf
+    cp ${TMPCONF} ./${NAME}.conf
     shred -u ${TMPCONF}
 done
+
+SERVERDIR=/etc/openvpn/server
+SERVERCONF=${CA_CN}.conf
+SERVERUP=${CA_CN}.up
+cat <<EOF
+#################################################
+
+1. Server setup
+
+Copy ${CA_CN}.* files on your server host and run:
+
+sudo chown root:root ${SERVERCONF}
+sudo mv ${SERVERCONF} ${SERVERDIR}/
+sudo chmod 0600 ${SERVERDIR}/${SERVERCONF}
+
+If you have specified -r parameter to route traffic
+then additionally run:
+
+sudo chown root:root ${SERVERUP}
+sudo mv ${SERVERUP} ${SERVERDIR}/
+sudo chmod 0744 ${SERVERDIR}/${SERVERUP}
+
+Run:
+
+systemctl enable openvpn openvpn-server@${CA_CN}
+systemctl start openvpn openvpn-server@${CA_CN}
+
+To enable OpenVPN server auto start and start it.
+
+2. Client setup
+
+Run:
+
+openvpn ${CA_CN}-client-*.conf
+
+EOF
