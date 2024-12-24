@@ -98,6 +98,8 @@ EASYRSA="./easyrsa --batch"
 ${EASYRSA} init-pki
 echo -e "${CA_PASS}\n${CA_PASS}" | ${EASYRSA} --days=${DAYS} --req-cn=${CA_CN} build-ca
 ${EASYRSA} gen-dh
+TLS_AUTH=${PKI}/${CA_CN}-tls-auth.key
+openvpn --genkey secret ${TLS_AUTH}
 
 CA_CRT=${PKI}/ca.crt
 CA_KEY=${PKI}/private/ca.key
@@ -165,7 +167,14 @@ for i in $(seq 0 $CLIENTS); do
         cat ${DH} >>${CONFIG}
         echo "</dh>" >>${CONFIG}
 
-        cat ${SOURCE} | sed '1,/^dh /d' >>${CONFIG}
+        cat ${SOURCE} | sed '1,/^dh /d' | sed -n '/^;tls-auth /q;p' >>${CONFIG}
+
+        echo "<tls-auth>" >>${CONFIG}
+        cat ${TLS_AUTH} >>${CONFIG}
+        echo "</tls-auth>" >>${CONFIG}
+        echo "key-direction 0" >>${CONFIG}
+
+        cat ${SOURCE} | sed '1,/^;tls-auth /d' >>${CONFIG}
 
         if test 1 -eq ${ROUTING} ; then
             cp up ./${NAME}.up
@@ -179,7 +188,15 @@ up /etc/openvpn/server/${NAME}.up
 EOF
         fi
     else
-        cat ${SOURCE} | sed '1,/^key /d' >>${CONFIG}
+        cat ${SOURCE} | sed '1,/^key /d' | sed -n '/^;tls-auth /q;p' >>${CONFIG}
+
+        echo "<tls-auth>" >>${CONFIG}
+        cat ${TLS_AUTH} >>${CONFIG}
+        echo "</tls-auth>" >>${CONFIG}
+        echo "key-direction 1" >>${CONFIG}
+
+        cat ${SOURCE} | sed '1,/^;tls-auth /d' >>${CONFIG}
+
         sed -i "s/my-server-1/${SERVER_HOST}/g" ${CONFIG}
 
         if test 1 -eq ${ROUTING} ; then

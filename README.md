@@ -9,6 +9,7 @@ The following tools are required by the script:
 - bash
 - wget
 - sed
+- openvpn
 
 # Usage
 
