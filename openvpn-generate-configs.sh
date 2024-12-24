@@ -29,6 +29,8 @@
 #H   -r             Route internet traffic via VPN server
 #H 
 
+set -eu
+
 show_help() {
     grep -e '^#H ' $0 | sed 's/^#H //'
 }
