@@ -19,17 +19,18 @@
 ## 
 ## Generate an OpenVPN server and client configurations.
 ## 
-## Usage: openvpn-generate-config.sh -c ca -n count -s server [-d days]
+## Usage: openvpn-generate-config.sh -c <cn> -n <count> -s <server>
+##          [-d <days>] [-r]
 ## 
-##   -c ca      Central authority common name, no spaces
-##   -n count   Number of clients to generate
-##   -s server  Domain name or ip address of the server
-##   -d days    CA/client certificate validity period, 10 years by default
-##   -r         Route internet traffic via VPN server
+##   -c <ca>        Central authority common name, no spaces
+##   -n <count>     Number of clients to generate
+##   -s <server>    Domain name or ip address of the server
+##   -d <days>      CA/client certificate validity period, 10 years by default
+##   -r             Route internet traffic via VPN server
 ## 
 
 show_help() {
-    grep -e '^##' $0 | sed 's/^## //'
+    grep -e '^## ' $0 | sed 's/^## //'
 }
 
 DAYS=3653
