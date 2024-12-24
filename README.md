@@ -6,6 +6,7 @@ considered insecure but this script is meant to be used in a simple scenarios
 when one person can own all of keys.
 
 The following tools are required by the script:
+- bash
 - wget
 - sed
 
