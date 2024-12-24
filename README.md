@@ -1,15 +1,20 @@
 # Overview
 
-Simple script to generate OpenVPN 2.6 config automatically. This script keeps
-CA, server and client keys at the same EasyRSA directory. Such setup is
-considered insecure but this script is meant to be used in a simple scenarios
-when one person can own all of keys.
+Script generates server and required number of client configuration files.
+Generated configurations inline all the keys and certificate required, thus
+copying a single file is enough to run server or client. 
 
-The following tools are required by the script:
-- bash
-- wget
-- sed
-- openvpn
+Script supports OpenVPN version 2.6 and built on top of [EasyRSA
+3](https://github.com/OpenVPN/easy-rsa). Configuration includes CA certificate,
+server keys and certificates, client keys and certificates, Diffie-Hellman
+parameters and tls-auth key. CA, server and client keys are kepts at the same
+EasyRSA directory. Such setup is considered insecure but it is meant to be used
+in a simple scenario when a single person may own all of keys.
+
+The following tools are required, to run the script:
+- [wget](https://www.gnu.org/software/wget/) - to download EasyRSA release automatically
+- [sed](https://www.gnu.org/software/sed/) - to manipulate script files
+- [OpenVPN](https://openvpn.net/community/) - to generate tls-auth key
 
 # Usage
 
@@ -24,8 +29,8 @@ Optionally use options:
 
 Script generates server and client config files. The only password you need to
 enter during the process is a new CA key password. Resulting files have names
-`${CA_CN}-client-[0-9]+.conf` and `${CA_CN}.conf`. Configs contain all the
-certificates and keys needed. Server and client keys are not protected with
-password. Use `openvpn-change-key-pass.sh <config>` to set or change the
-password. Usually it is required for a client only because server should be
-started automatically. Script prints short setup instructions after generation.
+`${CA_CN}-client-[0-9]+.conf` and `${CA_CN}.conf`. Server and client keys are
+not protected with password. Use `openvpn-change-key-pass.sh <config>` to set
+or change the password. Usually it is required for a client only because server
+should be started automatically. Script prints short setup instructions after
+generation.

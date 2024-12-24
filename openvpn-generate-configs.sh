@@ -63,12 +63,12 @@ if test -z "${CA_CN}" -o -z "${CLIENTS}" -o -z "${SERVER_HOST}" ; then
     exit 1
 fi
 
-if ! command -v wget >/dev/null; then
-    echo "Please install wget tool"
+if ! command -v openvpn >/dev/null; then
+    echo "Please install openvpn, see https://openvpn.net/community/"
     exit 1
 fi
 if ! command -v sed >/dev/null; then
-    echo "Please install sed tool"
+    echo "Please install sed, see https://www.gnu.org/software/sed/"
     exit 1
 fi
 
@@ -82,6 +82,10 @@ EASYRSA_DIR_NAME=EasyRSA-${EASYRSA_VER}
 
 if ! test -d ${EASYRSA_DIR_NAME} ; then
     if ! test -f ${EASYRSA_DIR_NAME}.tgz ; then
+        if ! command -v wget >/dev/null; then
+            echo "Please install wget, see https://www.gnu.org/software/wget/"
+            exit 1
+        fi
         wget -O ${EASYRSA_DIR_NAME}.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v${EASYRSA_VER}/${EASYRSA_DIR_NAME}.tgz
     fi
     rm -rf ${EASYRSA_DIR_NAME}
