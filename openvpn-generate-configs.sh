@@ -63,10 +63,15 @@ if test -z "${CA_CN}" -o -z "${CLIENTS}" -o -z "${SERVER_HOST}" ; then
     exit 1
 fi
 
-if ! command -v openvpn >/dev/null; then
+if ! OPENVPN=$(which openvpn); then
+    OPENVPN=/usr/sbin/openvpn
+fi
+if ! command -v ${OPENVPN} >/dev/null; then
     echo "Please install openvpn, see https://openvpn.net/community/"
     exit 1
 fi
+echo "OpenVPN executable path: ${OPENVPN}"
+
 if ! command -v sed >/dev/null; then
     echo "Please install sed, see https://www.gnu.org/software/sed/"
     exit 1
@@ -103,7 +108,7 @@ ${EASYRSA} init-pki
 echo -e "${CA_PASS}\n${CA_PASS}" | ${EASYRSA} --days=${DAYS} --req-cn=${CA_CN} build-ca
 ${EASYRSA} gen-dh
 TLS_AUTH=${PKI}/${CA_CN}-tls-auth.key
-openvpn --genkey secret ${TLS_AUTH}
+${OPENVPN} --genkey secret ${TLS_AUTH}
 
 CA_CRT=${PKI}/ca.crt
 CA_KEY=${PKI}/private/ca.key
@@ -228,9 +233,9 @@ cat <<EOF
 
 Copy ${CA_CN}.* files on your server host and run:
 
+sudo chmod 0600 ${SERVERCONF}
 sudo chown root:root ${SERVERCONF}
 sudo mv ${SERVERCONF} ${SERVERDIR}/
-sudo chmod 0600 ${SERVERDIR}/${SERVERCONF}
 
 If you have specified -r parameter to route traffic
 then additionally run:
