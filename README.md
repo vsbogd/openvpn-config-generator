@@ -8,7 +8,7 @@ Script supports [OpenVPN 2.6](https://github.com/OpenVPN/openvpn) and built on
 top of [EasyRSA 3](https://github.com/OpenVPN/easy-rsa). Configuration includes
 CA certificate, server keys and certificates, client keys and certificates,
 Diffie-Hellman parameters and tls-auth key. CA, server and client keys are
-kepts at the same EasyRSA directory. Such setup is considered insecure but it
+kept at the same EasyRSA directory. Such setup is considered insecure but it
 is meant to be used in a simple scenario when a single person may own all of
 keys.
 
@@ -40,5 +40,5 @@ The only password you need to enter during the process is a new CA key
 password. Resulting files have names `${CA_CN}-client-[0-9]+.conf` and
 `${CA_CN}.conf`. Server and client keys are not protected with password. Use
 `openvpn-change-key-pass.sh <config>` to set or change the password. Usually it
-is required for a client only because server should be started automatically.
-Script prints short setup instructions after generation.
+is required by a client only because server should be started automatically.
+Script prints a short setup instructions at the end.
